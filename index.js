@@ -22,21 +22,21 @@ Tool.prototype = {
     });
 
     const srcfile = path.join(this.src, src);
-    process.nextTick(() => {
+    process.nextTick(() =>
       this.createSrc(srcfile, dst)
         .then(({ code }) => this.createMaterial(srcfile, dst, code))
         .then(mat => {
           next.write(mat);
           next.end();
         })
-        .catch(err => this.error({
+        .catch(err => this.error(err.loc ? {
           message: err.message,
           file: err.loc.file,
           line: err.loc.line,
           column: err.loc.column,
           extract: err.frame
-        }))
-    });
+        } : err))
+    );
 
     return next;
   },
