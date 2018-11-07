@@ -14,12 +14,18 @@
   "author": "Alexey Novikov (http://2dubs.com)",
   "dependencies": {
     "fuller-material-file": "^0.3.2",
-    "rollup": "^0.63.0",
-    "rollup-plugin-commonjs": "^9.1.4",
-    "rollup-plugin-node-resolve": "^3.3.0"
+    "rollup": "^0.67.0",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-replace": "^2.1.0"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:fullerjs/src-rollup.git"
+  },
+  "devDependencies": {
+    "ava": "^0.25.0",
+    "fuller": "^0.3.3",
+    "nyc": "^13.1.0"
   }
 }

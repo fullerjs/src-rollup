@@ -4,6 +4,7 @@ const Transform = require('stream').Transform;
 const Material = require('fuller-material-file');
 
 const rollup = require('rollup');
+const replace = require('rollup-plugin-replace');
 const resolve = require('rollup-plugin-node-resolve');
 const commonjs = require('rollup-plugin-commonjs');
 
@@ -11,6 +12,7 @@ const Tool = function(fuller, options) {
   fuller.bind(this);
   this.src = options.src;
   this.dst = options.dst;
+  this.replace = options.replace;
   this.format = options.format || 'iife'; // defult is a self-executing function, suitable for inclusion as a <script> tag.
 };
 
@@ -46,6 +48,7 @@ Tool.prototype = {
       .rollup({
         input: src,
         plugins: [
+          replace(this.replace),
           resolve(),
           commonjs()
         ]
