@@ -8,16 +8,16 @@ const replace = require('rollup-plugin-replace');
 const resolve = require('rollup-plugin-node-resolve');
 const commonjs = require('rollup-plugin-commonjs');
 
-const Tool = function(fuller, options) {
-  fuller.bind(this);
-  this.src = options.src;
-  this.dst = options.dst;
-  this.replace = options.replace;
-  this.format = options.format || 'iife'; // defult is a self-executing function, suitable for inclusion as a <script> tag.
-};
+class Tool {
+  constructor(fuller, options) {
+    fuller.bind(this);
+    this.src = options.src;
+    this.dst = options.dst;
+    this.replace = options.replace;
+    this.format = options.format || 'iife'; // defult is a self-executing function, suitable for inclusion as a <script> tag.
+  }
 
-Tool.prototype = {
-  build: function(src, dst) {
+  build(src, dst) {
     const next = new Transform({
       objectMode: true,
       transform: (mat, enc, cb) => cb(null, mat)
@@ -26,7 +26,7 @@ Tool.prototype = {
     const srcfile = path.join(this.src, src);
     process.nextTick(() =>
       this.createSrc(srcfile, dst)
-        .then(({ code }) => this.createMaterial(srcfile, dst, code))
+        .then(({ output }) => this.createMaterials(srcfile, dst, output))
         .then(mat => {
           next.write(mat);
           next.end();
@@ -41,27 +41,40 @@ Tool.prototype = {
     );
 
     return next;
-  },
+  }
 
-  createSrc: function(src, dst) {
+  createSrc(src, dst) {
     return rollup
       .rollup({
         input: src,
         plugins: [
-          replace(this.replace),
+          this.replace && replace(this.replace),
           resolve(),
           commonjs()
         ]
       })
       .then(bundle => {
-        bundle.modules.forEach(module => this.addDependencies(module.id, dst))
+        this.addDependencies(bundle.watchFiles, dst);
         return bundle.generate({
           format: this.format
         });
       })
-  },
+  }
 
-  createMaterial: function(src, dst, content) {
+  createMaterials(srcfile, dst, output) {
+    // fuller doesn't support multiple files in one stream yet
+    for (const chunk of output) {
+      switch (chunk.type) {
+        case 'asset':
+          continue;
+
+        case 'chunk':
+          return this.createMaterial(srcfile, dst, chunk.code);
+      }
+    }
+  }
+
+  createMaterial(src, dst, content) {
     return new Material({
       id: dst,
       path: src
@@ -70,7 +83,6 @@ Tool.prototype = {
       .error(err => this.error(err))
       .setContent(content)
   }
-};
-
+}
 
 module.exports = Tool;
